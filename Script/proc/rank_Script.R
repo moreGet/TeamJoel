@@ -26,4 +26,9 @@ colnames(val_Option) # 컬럼 명 일치 하긴 함.
 val_Option <- val_Option[, -2]
 colnames(val_Option)
 
-write.csv(x = val_Option, file = "rankTotal.csv", fileEncoding = enco, )
+# 데이터 중간 저장
+write.csv(x = val_Option, file = "../DB/rankTotal.csv", quote = F, fileEncoding = enco)
+
+# 중간 데이터 read
+df <- read.csv(file = "rankTotal.csv", header = F, stringsAsFactors = F, encoding = enco)
+df
