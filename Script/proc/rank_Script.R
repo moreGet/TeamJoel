@@ -1,6 +1,10 @@
 dir <- getwd()
-dir_db <- "C:\\Users\\dkdlw\\OneDrive\\Desktop\\Project\\DB"
+dir_db <- "../TeamJoel/DB/"
 # setwd("../")
+
+## Var
+enco <- "UTF-8"
+######
 
 # 경로 자동설정
 if (dir != dir_db) {
@@ -21,3 +25,5 @@ colnames(val_Option) # 컬럼 명 일치 하긴 함.
 
 val_Option <- val_Option[, -2]
 colnames(val_Option)
+
+write.csv(x = val_Option, file = "rankTotal.csv", fileEncoding = enco, )
