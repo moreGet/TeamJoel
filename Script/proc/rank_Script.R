@@ -1,0 +1,23 @@
+dir <- getwd()
+dir_db <- "C:\\Users\\dkdlw\\OneDrive\\Desktop\\Project\\DB"
+# setwd("../")
+
+# 경로 자동설정
+if (dir != dir_db) {
+  print("경로 재설정")
+  setwd(dir_db)
+} else {
+  print("경로 정상")
+}
+
+# Data Input
+df <- read.csv(file = "rank.csv", header = F, stringsAsFactors = F)
+head(df, 5)
+colnames(df)
+
+val_Option <- df[1:3, ]
+str(val_Option)
+colnames(val_Option) # 컬럼 명 일치 하긴 함.
+
+val_Option <- val_Option[, -2]
+colnames(val_Option)
