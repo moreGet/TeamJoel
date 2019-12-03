@@ -1,5 +1,5 @@
 dir <- getwd()
-dir_db <- "../TeamJoel/DB/"
+dir_db <- "../Desktop/Git/TeamJoel/DB/"
 # setwd("../")
 
 ## Var
@@ -27,8 +27,10 @@ val_Option <- val_Option[, -2]
 colnames(val_Option)
 
 # 데이터 중간 저장
-write.csv(x = val_Option, file = "../DB/rankTotal.csv", quote = F, fileEncoding = enco)
+write.csv(x = val_Option, file = "../DB/rankTotal.csv", quote = F)
 
 # 중간 데이터 read
-df <- read.csv(file = "rankTotal.csv", header = F, stringsAsFactors = F, encoding = enco)
+df <- read.csv(file = "rankTotal.csv", header = T, stringsAsFactors = F)
 df
+
+# 
