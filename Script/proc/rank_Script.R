@@ -4,22 +4,6 @@ library(nnet)
 library(base)
 source_url('https://gist.githubusercontent.com/fawda123/7471137/raw/466c1474d0a505ff044412703516c34f1a4684a5/nnet_plot_update.r')
 
-dir <- getwd()
-dir_db <- "../TeamJoel/DB/"
-# setwd("../")
-
-## Var
-enco <- "UTF-8"
-######
-
-# 경로 자동설정
-if (dir != dir_db) {
-  print("경로 재설정")
-  setwd(dir_db)
-} else {
-  print("경로 정상")
-}
-
 ################################################
 
 sample <- read.csv('Sample.csv', header = F)
@@ -123,3 +107,8 @@ library(ROCR)
 pr <- prediction(pred, te$재방문)
 prf <- performance(pr, measure = "tpr", x.measure = "fpr")
 plot(prf, main = "ROC Curve")
+
+library(ggplot2)
+
+df
+ggplot(data = df, mapping = aes(x = 재방문, y = 사례수)) + geom_line()
