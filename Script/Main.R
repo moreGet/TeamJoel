@@ -38,6 +38,11 @@ for (idx in y:(y+4)) {
       labs(title = paste(idx, "재방문 시 고려요인(중복)")))
 }
 
+############################################################
+############################################################
+############################################################
+############################################################
+
 # 주요 관광수요 산업 컬럼을 구분하기 위해 카이제곱을 실시 해야함
 # 이를 위해 범주형 데이터가 필요함. 이는 만족도 범주형을 가지고옴
 
@@ -69,8 +74,10 @@ for (idx in 1:end) {
 # 데이터 정렬 및 검증
 length(chiList)
 chi_df <- data.frame(p_Value=chiList)
-chi_df <- chi_df %>% mutate(result = ifelse(p_Value>=0.05, "채택", "기각"))
-chi_df <- chi_df %>% arrange(desc(p_Value))
+chi_df <- chi_df %>% 
+  mutate(result = ifelse(p_Value>=0.05, "채택", "기각")) %>% 
+  arrange(desc(p_Value))
+
 row.names(chi_df) <- colnames(MainAct[-1])
 chi_df
 
@@ -94,6 +101,11 @@ chi_df
  
 # 이후 내림차순으로 P-Value를 정렬하여 이를 통해 잠정적인 상승이 이루어진 요인을 추출함.
 # P-Value 값이 가장 큰 요인을 가지고 안정적인 상승세를 이룬 주요 산업을 가지고 정책을 고민 해봄
+
+############################################################
+############################################################
+############################################################
+############################################################
 
 # Val 설명
 # MainAct : 고려요인
@@ -222,6 +234,11 @@ modelX4$coefficients
 # - 음식_미식탐방
 # 이며 다른 결과와 취합해 상세 정책및 개편안 에 대한 고민을 할 수 있 을 것 같다.
 
+############################################################
+############################################################
+############################################################
+############################################################
+
 # 비율검정
 joinAct <- read.csv("DB/주요참여활동.csv", header = T)
 MainAct #고려요인
@@ -295,7 +312,114 @@ bio$p.value > 0.05
 # 단일집단 평균 검정
 joinAct_DelCol # 60/8 주요참여 활동
 MainAct_DelCol # 60/15 고려요인
-revisitAct_DelCol # 재방문 확률 
+revisitAct_DelCol <- revisitAct_DelCol %>% 
+  mutate(bin = ifelse(재방문=="높음", 1, 0)) %>% 
+  mutate(bool = ifelse(재방문=="높음", TRUE, FALSE))
+revisitAct_DelCol # 이진값
+
+# write.csv(x = revisitAct_DelCol, file = "DB/재방문확률(2진).csv")
+# 단일 집단 평균 검정에 앞서 재방문 확률이 높게된 컬럼에 대해 카이제곱 검정 실시
+end <- 0
+end <- length(MainAct[-1]) # 컬럼 갯수 만큼 카이검정
+chiList_revisit <- 0
+
+# 데이터프레임 만듦
+MuxDf_revisit <- cbind(MainAct[-1], revisitAct_DelCol[1])
+
+for (idx in 1:end) {
+  ta <- CrossTable(unlist(MuxDf_revisit[idx]), MuxDf_revisit$재방문, chisq = T)
+  chiList_revisit[idx] <- ta$chisq$p.value
+}
+
+# 카이제곱 검정 실시
+chiList_revisit <- as.data.frame(chiList_revisit)
+chiList_revisit <- chiList_revisit %>% arrange(desc(chiList_revisit))
+row.names(chiList_revisit) <- colnames(MainAct[-1])
+chiList_revisit
+
+# 데이터 정렬 및 검증
+length(chiList)
+chi_df <- data.frame(p_Value=chiList)
+chi_df <- chi_df %>% 
+  mutate(result = ifelse(p_Value>=0.05, "채택", "기각")) %>% 
+  arrange(desc(p_Value))
+
+row.names(chi_df) <- colnames(MainAct[-1])
+chi_df
+
+# 외국인 재방문 의사를 긍정적으로 검토하게 만든 요인 리스트.
+# P-Value 가 높은 요인순으로 긍정적 검토의 영향을 준다.
+# chiList_revisit
+# 휴양휴식                         0.5688389
+# 유흥_오락                        0.5333151
+# 뷰티관광                         0.5004407
+# 쇼핑.1                           0.4718427
+# 음식_미식탐방                    0.4698975
+# 자연풍경감상                     0.4392475
+# 역사_문화유적                    0.4362065
+# 패션_유행_.등_.세련된_문화       0.4062221
+# K.POP_한류스타_팬미팅            0.3555232
+# 경제적인_여행비용                0.3301845
+# 유흥_놀이시설                    0.3273608
+# 숙박시설_편리한.교통             0.3080835
+# 이미용_서비스                    0.2777497
+# 기후_뚜렷한_사계절               0.2756363
+
+# 단일집단 평균 t.test() 검증 이유 : 4년간 년도별 재방문 의사 긍정적표현의 변화
+# install.packages(c("Hmisc", "prettyR"))
+library(Hmisc)
+library(prettyR)
+
+# 기술 통계량
+describe(revisitAct_DelCol$bin)
+# Numeric 
+# mean median  var  sd valid.n
+# x 0.52      1 0.25 0.5      60
+
+# 데이터 프레임 만들기(년도별 평균 검증 을 위해)
+revisit_bin_df <- data.frame(x2014 = revisitAct_DelCol$bin[1:12], 
+                             x2015 = revisitAct_DelCol$bin[13:24],
+                             x2016 = revisitAct_DelCol$bin[25:36],
+                             x2017 = revisitAct_DelCol$bin[37:48],
+                             x2018 = revisitAct_DelCol$bin[49:60])
+revisit_bin_df
 
 # 정규분포
-shapiro.test(x = joinAct_DelCol$쇼핑)
+for (idx in 1:length(revisit_bin_df)) {
+  vec <- unlist(revisit_bin_df[idx])
+  sh <- shapiro.test(x = vec)
+  print(sh$p.value > 0.05)
+  print("------------------")
+  print(describe(vec))
+}
+
+# 14 ~ 18 년도 전부 정규분포가 아님
+# [1] FALSE
+# [1] FALSE
+# [1] FALSE
+# [1] FALSE
+# [1] FALSE
+
+# 정규 분포가 아니기 때문에 wilcox 검정 실시.
+for (idx in 1:length(revisit_bin_df)) {
+  w <- wilcox.test(x = unlist(revisit_bin_df[idx]), mu = 0.52, alternative = "two.sided")
+  print(w$p.value > 0.05)
+}
+
+# 연구가설 : 알려져 있는 우리나라 재방문 의사표현은 매년 바뀐다.
+# 귀무가설 : 알려져 있는 우리나라 재방문 의사표현은 매년 바뀌지 않는다.
+# 비모수 검정(wilcox) 검정 결과 채택
+# [1] TRUE
+# [1] TRUE
+# [1] TRUE
+# [1] TRUE
+# [1] TRUE
+
+# 귀무가설 채택 : 외국인 방한 의사가 매년 바뀌지 않고 52% 이상이 긍정적 이다.
+
+############################################################
+############################################################
+############################################################
+############################################################
+
+
