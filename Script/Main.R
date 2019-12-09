@@ -75,6 +75,7 @@ row.names(chi_df) <- colnames(MainAct[-1])
 chi_df
 
 # 카이제곱 검정을 실시 하였고 재방문 고려요인과 만족도 간의 관계가 증명 되었다.
+# 민감도 대한민국 타겟팅으로 된 국제사회 이슈 에 대해 가장 영향을 받지 않는 수치는 P-value가 높을수록 좋다.
 # p_Value result
 # 휴양휴식                   0.7294646   채택
 # 유흥_오락                  0.6443329   채택
@@ -210,24 +211,7 @@ modelX4$coefficients
 # 방한 방문객은 만족과 상관없이 방문 횟수가 늘면 늘수록 대한민국의 교통및 숙박시설
 # 에 강한 만족감을 나타내고 있다.
 
-# p_Value result
-# 휴양휴식                   0.7294646   채택
-# 유흥_오락                  0.6443329   채택
-# 뷰티관광                   0.6092449   채택
-# 쇼핑.1                     0.5931206   채택
-# 음식_미식탐방              0.5622067   채택
-# 자연풍경감상               0.5573205   채택
-# 역사_문화유적              0.5084509   채택
-# 패션_유행_.등_.세련된_문화 0.4700696   채택
-# K.POP_한류스타_팬미팅      0.4313990   채택
-# 경제적인_여행비용          0.4200565   채택
-# 유흥_놀이시설              0.4049757   채택
-# 숙박시설_편리한.교통       0.3984646   채택
-# 이미용_서비스              0.3710314   채택
-# 기후_뚜렷한_사계절         0.3234574   채택
-
 # 휴양휴식 과 숙박시설 간의 루트를 정부차원에서 지원하여 개발해야한다.
-# 연령층 대로 카이검정을 실시하게 된다면 현재 방한 외국인 의 주요요인이 바뀌게 될 수도 있다.
 
 # 정책 개편 방안 주제 Top 5 요인
 # 숙박시설 및 편리한 교통
@@ -237,3 +221,81 @@ modelX4$coefficients
 # - 쇼핑
 # - 음식_미식탐방
 # 이며 다른 결과와 취합해 상세 정책및 개편안 에 대한 고민을 할 수 있 을 것 같다.
+
+# 비율검정
+joinAct <- read.csv("DB/주요참여활동.csv", header = T)
+MainAct #고려요인
+revisit <- read.csv("DB/재방문확률.CSV", header = T)
+
+# 데이터 검정
+# 행이 같음.
+dim(joinAct) # 60/8 주요참여 활동
+dim(MainAct) # 60/15 고려요인
+dim(revisit) # 재방문 확률
+
+# 검정 하기에 앞서 결측치, 이상치 제거를 한다.
+# All False 인자값 이므로 결측치는 존재하지 않는다.
+table(is.na(joinAct))
+table(is.na(MainAct))
+table(is.na(revisit))
+
+# 검정통계량 으로 빈도 분석.
+summary(joinAct)
+summary(MainAct)
+summary(revisit)
+
+#      집단  검정 대상 관련 함수  동질성 검정  정규 분포 검정 
+# 
+# 단일 집단  비율      binom.test()        -              - 
+#   
+# 단일 집단  평균      t.test()            -   shapiro.test() 
+# 
+# 두 집단    비율      prop.test()         -              - 
+#   
+# 두 집단    평균      t.test()    var.test()             - 
+#   
+# 세 집단    비율      prop.test()         -              - 
+#   
+# 세 집단    평균      aov()       bartlett.test()        - 
+
+# 단일 집단의 방문 의사 검정
+# 4년치 데이터의 방문의사 를 베이스로 집단간 차이 검정 실시
+
+# binomTest() 하기
+# 날짜 지우기
+joinAct_DelCol <- joinAct[-1]
+MainAct_DelCol <- MainAct[-1]
+revisitAct_DelCol <- revisit[-1]
+
+# 기간         재방문  
+# Min.   :201401   낮음:29  
+# 1st Qu.:201504   높음:31  
+# Median :201607            
+# Mean   :201607            
+# 3rd Qu.:201709            
+# Max.   :201812  
+
+# 연구가설 : 4년간 방한 외국인의 재방문 의사는 높다.
+# 귀무가설 : 4년간 방한 외국인의 재방문 의사는 높지 않다.
+bio <- binom.test(c(31, 29), p = 0.8)
+# Exact binomial test
+#
+# data:  c(31, 29)
+# number of successes = 31, number of trials = 60, p-value = 8.146e-07
+# alternative hypothesis: true probability of success is not equal to 0.8
+# 95 percent confidence interval:
+#   0.3839460 0.6476871
+# sample estimates:
+#   probability of success 
+# 0.5166667 
+
+# FALSE 이므로 귀무가설 기각
+bio$p.value > 0.05
+
+# 단일집단 평균 검정
+joinAct_DelCol # 60/8 주요참여 활동
+MainAct_DelCol # 60/15 고려요인
+revisitAct_DelCol # 재방문 확률 
+
+# 정규분포
+shapiro.test(x = joinAct_DelCol$쇼핑)
