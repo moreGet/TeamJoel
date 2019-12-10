@@ -1,3 +1,6 @@
+# install.packages("progress")
+library(progress)
+
 # source(file = "Script/proc/rank_Script.R", encoding = "UTF-8")
 # 
 # # 로지스틱 회귀 : rank_Script.R
@@ -409,11 +412,11 @@ for (idx in 1:length(revisit_bin_df)) {
 # 연구가설 : 알려져 있는 우리나라 재방문 의사표현은 매년 바뀐다.
 # 귀무가설 : 알려져 있는 우리나라 재방문 의사표현은 매년 바뀌지 않는다.
 # 비모수 검정(wilcox) 검정 결과 채택
-# [1] TRUE
-# [1] TRUE
-# [1] TRUE
-# [1] TRUE
-# [1] TRUE
+# [1] TRUE 2014
+# [1] TRUE 2015
+# [1] TRUE 2016
+# [1] TRUE 2017
+# [1] TRUE 2018
 
 # 귀무가설 채택 : 외국인 방한 의사가 매년 바뀌지 않고 52% 이상이 긍정적 이다.
 
@@ -422,4 +425,521 @@ for (idx in 1:length(revisit_bin_df)) {
 ############################################################
 ############################################################
 
+# 집단별 비율차이 검증
+# 년도별 재방문 의사표현 의 차이 검정
 
+# prop.test 시행
+# 연구 : 외국인 방한 의사가 매년 일정하지 않다.
+# 귀무 : 외국인 방한 의사가 매년 일정하다.
+for (idx in 1:length(revisit_bin_df)) {
+  
+  ta <- table(unlist(revisit_bin_df[idx]))
+  prop_ta <- prop.table(ta)
+  
+  cat(colnames(revisit_bin_df[idx]))
+  print(ta)
+  cat("\n")
+}
+
+# prop.test()
+ptt <- prop.test(x = c(5, 6, 6, 6, 6), n = c(12, 12, 12, 12, 12))
+# 5-sample test for equality of proportions without continuity correction
+# 
+# data:  c(5, 6, 6, 6, 6) out of c(12, 12, 12, 12, 12)
+# X-squared = 0.26696, df = 4, p-value = 0.9918
+# alternative hypothesis: two.sided
+# sample estimates:
+#   prop 1    prop 2    prop 3    prop 4    prop 5 
+# 0.4166667 0.5000000 0.5000000 0.5000000 0.5000000 
+ptt$p.value > 0.05
+# [1] TRUE
+# 귀무가설 채택
+
+############################################################
+############################################################
+############################################################
+############################################################
+
+# 두 집단 평균 검정
+de <- describe(revisit_bin_df) # 기술 통계량
+de
+
+for (idx in 1:4) {
+  x <- unlist(revisit_bin_df[idx])
+  y <- unlist(revisit_bin_df[idx+1])
+  v <- var.test(x, y)  
+  print(v)
+}
+
+# F test to compare two variances
+# 
+# data:  x and y
+# F = 0.97222, num df = 11, denom df = 11, p-value = 0.9636
+# alternative hypothesis: true ratio of variances is not equal to 1
+# 95 percent confidence interval:
+#   0.279881 3.377207
+# sample estimates:
+#   ratio of variances 
+# 0.9722222 
+# 
+# 
+# F test to compare two variances
+# 
+# data:  x and y
+# F = 1, num df = 11, denom df = 11, p-value = 1
+# alternative hypothesis: true ratio of variances is not equal to 1
+# 95 percent confidence interval:
+#   0.2878776 3.4736991
+# sample estimates:
+#   ratio of variances 
+# 1 
+# 
+# 
+# F test to compare two variances
+# 
+# data:  x and y
+# F = 1, num df = 11, denom df = 11, p-value = 1
+# alternative hypothesis: true ratio of variances is not equal to 1
+# 95 percent confidence interval:
+#   0.2878776 3.4736991
+# sample estimates:
+#   ratio of variances 
+# 1 
+# 
+# 
+# F test to compare two variances
+# 
+# data:  x and y
+# F = 1, num df = 11, denom df = 11, p-value = 1
+# alternative hypothesis: true ratio of variances is not equal to 1
+# 95 percent confidence interval:
+#   0.2878776 3.4736991
+# sample estimates:
+#   ratio of variances 
+# 1 
+
+# 14 ~ 18년도 까지의 집단의 데이터는 서로 동질 하다.
+for (idx in 1:4) {
+  x <- unlist(revisit_bin_df[idx])
+  y <- unlist(revisit_bin_df[idx+1])
+  tValue <- t.test(x, y, alternative = "greater")  
+  print(tValue)
+}
+# 14, 15년도가 14년도 가 15년도보다 방문의사 긍정표현 수치가 조금더 작다.
+# 나머지 15년도 ~ 18년도 까지는 재방문 의사 긍정표현 수치가 일정하다.
+
+############################################################
+############################################################
+############################################################
+############################################################
+
+# 상관관계 cor
+# install.packages(c("corrgram", "moments"))
+# install.packages("corrplot")
+library(moments)
+library(corrgram)
+library(corrplot)
+
+MainAct
+joinAct
+revisitAct_DelCol
+
+# 방한 고려요인 상관관계도
+# 뷰티관광 과 휴양휴식 이 가장 관련이 있음.
+corrgram(MainAct, upper.panel = panel.conf)
+# 상관관계 그래프
+par(mfrow=c(1, 1))
+myCorr <- cor(MainAct)
+corrplot(myCorr, method = "ellipse", addCoef.col = "yellow", type = "upper")
+
+# 주요 참여활동 상관관계도
+# 자연관광 과 역사적 방문 간의 요소가 가장 관련
+corrgram(joinAct, upper.panel = panel.conf)
+# 상관관계 그래프
+par(mfrow=c(1, 1))
+myCorr <- cor(joinAct)
+corrplot(myCorr, method = "ellipse", addCoef.col = "yellow", type = "upper")
+
+# 방한의사 긍정 표현빈도 상관관계도
+corrgram(revisit_bin_df) # 15, 17년도가 가장 비슷한 표현빈도
+# 15, 17년도 가 무슨 관계가 있는지?
+# 상관관계 그래프
+par(mfrow=c(1, 1))
+myCorr <- cor(revisit_bin_df)
+corrplot(myCorr, method = "ellipse", addCoef.col = "yellow", type = "upper")
+
+# 히스토그램 및 비대칭도 통계량
+skwe_kurt_df <- data.frame(labels = c("왜도", "첨도")) # 각 행마다 왜도 첨도를 담고 있는 데이터 프레임
+par(mfrow = c(2, 2))
+
+################################# 고려요인 통계량 그래프
+for (idx in 2:length(MainAct)) {
+  main <- unlist(MainAct[idx])
+  title <- colnames(MainAct[idx])
+  skwe <- skewness(main) # 왜도
+  kurt <- kurtosis(main) # 첨도
+  
+  skwe_kurt_df <- cbind(skwe_kurt_df, c(skwe, kurt))
+  hist(x = main, freq = F, main = title)
+  
+  # 밀도 분포 곡선
+  lines(density(main), col = "blue")
+  curve(dnorm(x, mean(main), sd(main)), col="red", add = T)
+}
+
+# 고려요인 왜도 첨도
+# 왜도 첨도 모음 
+colnames(skwe_kurt_df) <- c("labels", colnames(MainAct[-1]))
+skwe_kurt_df
+
+################################# 주요 참여활동 통계량 그래프 
+par(mfrow = c(2, 2))
+skwe_kurt_df_join <- data.frame(labels = c("왜도", "첨도")) # 각 행마다 왜도 첨도를 담고 있는 데이터 프레임
+
+for (idx in 2:length(joinAct)) {
+  main <- unlist(joinAct[idx])
+  title <- colnames(joinAct[idx])
+  skwe <- skewness(main) # 왜도
+  kurt <- kurtosis(main) # 첨도
+  
+  skwe_kurt_df_join <- cbind(skwe_kurt_df_join, c(skwe, kurt))
+  hist(x = main, freq = F, main = title)
+  
+  # 밀도 분포 곡선
+  lines(density(main), col = "blue")
+  curve(dnorm(x, mean(main), sd(main)), col="red", add = T)
+}
+
+# 고려요인 왜도 첨도
+# 왜도 첨도 모음 
+colnames(skwe_kurt_df_join) <- c("labels", colnames(joinAct[-1]))
+skwe_kurt_df_join
+
+############################################################
+############################################################
+############################################################
+############################################################
+
+# 요인분석
+par(new=T)
+
+MainAct # 방한 외국인 고려요인
+joinAct # 방한 외국인 주요활동 만족요소
+revisitAct_DelCol # 방한 외국인 재방문 의사 긍정 표현
+
+##################################### 주성분 상세 정보는 꼭 Ctrl + Enter 하세요.
+# 방한 외국인 고려요인 주성분 분석
+pcMain <- prcomp(MainAct[-1])
+pcMain
+
+df_row <- colnames(MainAct[-1])
+pcMain_df <- data.frame(title_df = df_row, Standard_deviations = pcMain$sdev)
+# Standard deviations (1, .., p=7):
+#   [1] 412.68847  79.92565  48.11241  37.35248  27.94766  22.79224  17.03248
+# 방한 외국인 주요활동 만족요소 중 쇼핑이 가장 큰 영향을 줌
+ggplot(data = pcMain_df, aes(x = title_df, y = Standard_deviations, col = title_df, fill = title_df)) + geom_bar(stat = "identity") + labs(title = "방한 외국인 고려요인 중 가장 영향력 있는 요인")
+
+# Standard deviations (1, .., p=14):
+#   [1] 225.088410 121.262355  74.516223  41.442527  35.727341  32.717229  31.736348  23.294740  21.255884  20.156718  18.096378  11.492287
+# [13]   6.946037   5.592728
+# 방한 외국인 고려요인 중 쇼핑이 다른 요소에 가장 많은 영향을 줌
+
+########################################################################
+
+# 방한 외국인 주요활동 만족요소 주성분 분석
+pcJoin<- prcomp(joinAct[-1])
+pcJoin
+
+df_row <- colnames(joinAct[-1])
+pcJoin_df <- data.frame(title_df = df_row, Standard_deviations = pcJoin$sdev)
+# Standard deviations (1, .., p=7):
+#   [1] 412.68847  79.92565  48.11241  37.35248  27.94766  22.79224  17.03248
+# 방한 외국인 주요활동 만족요소 중 쇼핑이 가장 큰 영향을 줌
+ggplot(data = pcJoin_df, aes(x = title_df, y = Standard_deviations, col = title_df, fill = title_df)) + geom_bar(stat = "identity") + labs(title = "방한 외국인 주요활동 만족 요소 중 가장 영향력 있는 요인")
+
+############################################################
+############################################################
+############################################################
+############################################################
+
+# install.packages("party")
+library(party)
+
+# 의사결정 트리
+MainAct # 방한 외국인 고려요인
+joinAct # 방한 외국인 주요활동 만족요소
+revisitAct_DelCol # 방한 외국인 재방문 의사 긍정 표현
+
+# ctree를 위한 데이터 프레임 통합
+tree_Main <- cbind(MainAct[-1], revisitAct_DelCol[2])
+tree_Join <- cbind(joinAct[-1], revisitAct_DelCol[2])
+
+# 포뮬러 작성
+# 외국인 재방문 긍정의사 를 컬럼 통합
+# 의사결정 트리를 각 요인분석 에서 1등한 값을 종속으로 두고 실시함
+main_Fo <- 휴양휴식 ~ .
+join_Fo <- 쇼핑 ~ .
+
+# ctree Model 생성
+main_Model <- ctree(formula = main_Fo, data = tree_Main)
+join_Model <- ctree(formula = join_Fo, data = tree_Join)
+
+# ctree Plot
+plot(main_Model)
+plot(join_Model)
+
+# 모델 적합성
+# 방한 외국인 고려요인
+idx_Main <- sample(1:nrow(tree_Main), 0.7 * nrow(tree_Main))
+idx_Main
+
+training_Main <- prd[idx_Main, ]
+testing_Main <- prd[-idx_Main, ]
+
+# 방한 외국인 주요활동 만족요소
+idx_Join <- sample(1:nrow(tree_Join), 0.7 * nrow(tree_Join))
+idx_Join
+
+training_Join <- prd[idx_Join, ]
+testing_Join <- prd[-idx_Join, ]
+
+############################################################
+############################################################
+############################################################
+############################################################
+
+library(cluster)
+# 군집분석
+# hclust이용을 위해 데이터 프레임 메트릭스 화
+mat_Main <- t(tree_Main)
+mat_Join <- t(tree_Join)
+
+# 계층적 군집 분석을 위해 클러스트링을 수행 해야 한다.
+# 그에 사전 작업을 위해 유클리디언 거리 생성 함수를 이용한다.
+main_Dist <- dist(mat_Main)
+join_Dist <- dist(mat_Join)
+
+# 클러스터링
+main_Clust <- hclust(main_Dist, method = "single")
+# Call:
+#   hclust(d = main_Dist, method = "single")
+# 
+# Cluster method   : single 
+# Distance         : euclidean 
+# Number of objects: 15 
+
+join_Clust <- hclust(join_Dist, method = "single")
+# Call:
+#   hclust(d = join_Dist, method = "single")
+# 
+# Cluster method   : single 
+# Distance         : euclidean 
+# Number of objects: 8 
+
+# 물리적으로  비슷한 요인 을 묶어준다.
+# 유사도에 근거하여 군집들을 분석 하는데, 유사성은 유클리디언 거리를 사용한다.
+par(mfrow = c(1, 1)) # 차트 필드
+
+##############################################
+plot(main_Clust, main = "방한 외국인 고려요인")
+main_K = 3
+rect.hclust(main_Clust, k = main_K, border = rainbow(main_K))
+
+##############################################
+plot(join_Clust, main = "방한 외국인 주요활동 만족요소")
+join_K = 4
+rect.hclust(join_Clust, k = join_K, border = rainbow(join_K))
+
+# 군집 plot으로 가시화
+mds <- cmdscale(main_Dist)
+plot(mds, type='p', main = "방한 외국인 고려요인 군집", col = "blue")
+text(mds, rownames(mat_Main), adj = 1.10)
+
+mds <- cmdscale(join_Dist)
+plot(mds, type='p', main = "방한 외국인 주요활동 만족요소 군집", col = "blue")
+text(mds, rownames(mat_Join), adj = 1.10)
+
+############################################################
+############################################################
+############################################################
+############################################################
+
+# 연관 규칙을 찾을 수 없어 분석이 불가능.
+# install.packages("arulesViz")
+# install.packages("arules")
+# library(arulesViz)
+# library(arules)
+# 
+# # write.csv(x = MainAct[-1], file = "mainAct_Tran.csv")
+# # write.csv(x = joinAct[-1], file = "joinAct_Tran.csv")
+# 
+# # 연관분석
+# tran_Main <- read.transactions(file = "mainAct_Tran.csv", format = "basket")
+# tran_Join <- read.transactions(file = "joinAct_Tran.csv", format = "basket")
+# 
+# rule_Main <- apriori(tran_Main, parameter = list(supp=0.01, conf=0.1))
+# rule_Join <- apriori(tran_Join, parameter = list(supp=0.01, conf=0.1))
+# 
+# plot(rule_Main, method="grouped")
+
+############################################################
+############################################################
+############################################################
+############################################################
+# KNN 알고리즘
+# KNN(K-Nearest Neighbor) 알고리즘은 범주를 모르는 어떠한 데이터에 대하여 분류 되어 있는 가장 유사한 예제의 범주로  지정해주는 알고리즘이다
+
+# 입력 데이터와 유사한 K개의 데이터를 구하고, 그 K개 데이터의 분류 중 가장 빈도가 높은 클래스를 입력 데이터의 분류로  
+# 결정하는 알고리즘이다. 
+
+# 정규화 함수
+normalize <- function(x) {
+  return ( (x - min(x))/(max(x) - min(x)) )
+}
+
+
+# 기간 별 그룹 나누기 위해 전처리
+library(dplyr)
+mainAct_t <- MainAct
+joinAct_t <- joinAct
+
+mainAct_t$기간 <- substr(mainAct_t$기간, 1, 4)
+joinAct_t$기간 <- substr(joinAct_t$기간, 1, 4)
+
+ma <- unique(mainAct_t$기간)
+jo <- unique(joinAct_t$기간)
+
+mainAct_t$기간 <- factor(mainAct_t$기간, levels = ma, labels = ma)
+joinAct_t$기간 <- factor(joinAct_t$기간, levels = jo, labels = jo)
+
+# factor table
+table(mainAct_t$기간)
+table(joinAct_t$기간)
+
+# 정규화 시키기
+main_End <- length(mainAct_t)
+knn_MainAct <- as.data.frame(lapply(mainAct_t[2:main_End], normalize))
+
+join_End <- length(joinAct_t)
+knn_JoinAct <- as.data.frame(lapply(joinAct_t[2:join_End], normalize))
+
+# 축약
+summary(knn_MainAct)
+summary(knn_JoinAct)
+
+knn_MainAct <- cbind(knn_MainAct, revisitAct_DelCol[1])
+knn_JoinAct <- cbind(knn_JoinAct, revisitAct_DelCol[1])
+############################################################################### 전처리
+
+knn_Func <- function( val ) {
+  # 샘플링
+  idx <- sample(x = c("train", "valid", "test"), size = nrow(val), replace = TRUE, prob = c(3, 1, 1))
+  
+  # idx에 따라 데이터 나누기
+  train <- val[idx == "train", ]
+  valid <- val[idx == "valid", ]
+  test <- val[idx == "test", ]
+  
+  # 입력x과 출력y 데이터로 분리
+  train_x <- train[, -length(train)]
+  valid_x <- valid[, -length(train)]
+  test_x <- test[, -length(train)]
+  train_y <- train[, length(train)]
+  valid_y <- valid[, length(train)]
+  test_y <- test[, length(train)]
+  
+  # knn 알고리즘 적용하기(k = 1)
+  # k = 1 일 때
+  knn_1 <- knn(train = train_x, test = valid_x, cl = train_y, k = 1, use.all = F)
+  
+  # 분류 정확도 계산하기
+  table(knn_1, valid_y)
+  
+  accuracy_1 <- sum(knn_1 == valid_y) / length(valid_y)
+  accuracy_1
+  
+  knn_21 <- knn(train = train_x, test = valid_x, cl = train_y, k = 21)
+  
+  # 분류 정확도 계산하기
+  table(knn_21, valid_y)
+  
+  
+  accuracy_21 <- sum(knn_21 == valid_y) / length(valid_y)
+  accuracy_21
+  # 
+  # 최적의 k 값 구해보기
+  # k가 1부터 train 행 수까지 변화할 때 분류 정확도 구하기
+  ## 반복문 for 를 이용하여 k가 1부터 train 행 수까지 변화할 때,
+  ## 분류 정확도가 몇 % 되는지 그래프를 그려보고 최적의 k를 확인
+  # 분류 정확도 사전 할당
+  
+  accuracy_k <- NULL
+  # kk가 1부터 train 행 수까지 증가할 때 (반복문)
+  pb <- progress_bar$new(
+    format="[:bar] :current/:total (:percent)", total=250
+  )
+  
+  for(idx in c(1:250)){
+    # k가 kk일 때 knn 적용하기
+    knn_k <- knn(train = train_x, test = valid_x, cl = train_y, k = idx)
+    # 분류 정확도 계산하기
+    accuracy_k <- c(accuracy_k, sum(knn_k == valid_y) / length(valid_y))
+    pb$tick(0)
+    pb$tick(1)
+  }
+  
+  # Error in knn(train = train_x, test = valid_x, cl = train_y, k = idx) :
+  #     too many ties in knn
+  ## 500 이상의 k 값이 에러가 뜨므로, 250까지로 제한해 본다.
+  # k에 따른 분류 정확도 데이터 생성
+  valid_k <- data.frame(k = c(1:250), accuracy = accuracy_k)
+  colnames(valid_k)
+  
+  # k에 따른 분류 정확도 그래프 그리기
+  par(mfrow = c(1, 1))
+  plot(formula = accuracy ~ k, data = valid_k, type = "o", pch = 20, main = "validation - optimal k")
+  
+  # 분류 정확도가 가장 높으면서 가장 작은 k의 값 구하기
+  sort(valid_k$accuracy, decreasing = T)
+  maxdata <- max(valid_k$accuracy) # 
+  maxdata
+  
+  min_position <- min(which(valid_k$accuracy == maxdata))
+  min_position
+  # min_position의 값과 그래프에서 확인해 보면 적정 k값을 확인할 수 있다.
+  # 그럼 이제 k가 min_position의 값을 가질 때 모델이 얼마나 분류가 잘 되는지 test 데이터를 이용해서 표현해보자.
+  # 최적의 k 값에 test 데이터 적용하기
+  
+  knn_optimization <- knn(train = train_x, test = test_x, cl = train_y, k = min_position)
+  
+  # # Confusion Matrix 틀 만들기
+  result <- matrix(NA, nrow = 2, ncol = 2)
+  rownames(result) <- paste0("real_", c('낮음', '높음'))
+  colnames(result) <- paste0("clsf_", c('낮음', '높음'))
+  result
+  
+  # # Confusion Matrix 값 입력하기
+  result[1, 1] <- sum(ifelse(test_y == "낮음" & knn_optimization == "낮음", 1, 0))
+  result[2, 1] <- sum(ifelse(test_y == "높음" & knn_optimization == "높음", 1, 0))
+  result[1, 2] <- sum(ifelse(test_y == "낮음" & knn_optimization == "높음", 1, 0))
+  result[2, 2] <- sum(ifelse(test_y == "높음" & knn_optimization == "낮음", 1, 0))
+  result
+  
+  # 테이블
+  table(prediction=knn_optimization, answer=test_y)
+  
+  # 정확도
+  accuracy <- sum(knn_optimization == test_y) / sum(result)
+  accuracy
+}
+
+# KNN 분석
+knn_Func(knn_MainAct)
+knn_Func(knn_JoinAct)
+
+############################################################
+############################################################
+############################################################
+############################################################
+
+# [32.Naive Bayes] 불가능
