@@ -74,33 +74,32 @@ for (idx in 1:end) {
   chiList[idx] <- ta$chisq$p.value
 }
 
+df_oneYear <- MuxDf[49:60,1:end]
+CrossTable(unlist(df_oneYear$기후_뚜렷한_사계절), MuxDf$만족도[49:60], chisq = T)
 # 데이터 정렬 및 검증
 length(chiList)
-chi_df <- data.frame(p_Value=chiList)
-chi_df <- chi_df %>% 
-  mutate(result = ifelse(p_Value>=0.05, "채택", "기각")) %>% 
-  arrange(desc(p_Value))
-
-row.names(chi_df) <- colnames(MainAct[-1])
+rowName <- colnames(MainAct[-1])
+chi_df <- data.frame(rowName=rowName, p_Value=chiList)
+chi_df <- chi_df %>% arrange(desc(p_Value))
 chi_df
 
 # 카이제곱 검정을 실시 하였고 재방문 고려요인과 만족도 간의 관계가 증명 되었다.
 # 민감도 대한민국 타겟팅으로 된 국제사회 이슈 에 대해 가장 영향을 받지 않는 수치는 P-value가 높을수록 좋다.
-# p_Value result
-# 휴양휴식                   0.7294646   채택
-# 유흥_오락                  0.6443329   채택
-# 뷰티관광                   0.6092449   채택
-# 쇼핑.1                     0.5931206   채택
-# 음식_미식탐방              0.5622067   채택
-# 자연풍경감상               0.5573205   채택
-# 역사_문화유적              0.5084509   채택
-# 패션_유행_.등_.세련된_문화 0.4700696   채택
-# K.POP_한류스타_팬미팅      0.4313990   채택
-# 경제적인_여행비용          0.4200565   채택
-# 유흥_놀이시설              0.4049757   채택
-# 숙박시설_편리한.교통       0.3984646   채택
-# 이미용_서비스              0.3710314   채택
-# 기후_뚜렷한_사계절         0.3234574   채택
+# rowName   p_Value
+# 1          기후_뚜렷한_사계절 0.7294646
+# 2        숙박시설_편리한.교통 0.6443329
+# 3                    휴양휴식 0.6092449
+# 4               이미용_서비스 0.5931206
+# 5           경제적인_여행비용 0.5622067
+# 6                   유흥_오락 0.5573205
+# 7                    뷰티관광 0.5084509
+# 8       K.POP_한류스타_팬미팅 0.4700696
+# 9                      쇼핑.1 0.4313990
+# 10 패션_유행_.등_.세련된_문화 0.4200565
+# 11              유흥_놀이시설 0.4049757
+# 12               자연풍경감상 0.3984646
+# 13              음식_미식탐방 0.3710314
+# 14              역사_문화유적 0.3234574
  
 # 이후 내림차순으로 P-Value를 정렬하여 이를 통해 잠정적인 상승이 이루어진 요인을 추출함.
 # P-Value 값이 가장 큰 요인을 가지고 안정적인 상승세를 이룬 주요 산업을 가지고 정책을 고민 해봄
@@ -642,7 +641,7 @@ ggplot(data = pcMain_df, aes(x = title_df, y = Standard_deviations, col = title_
 # Standard deviations (1, .., p=14):
 #   [1] 225.088410 121.262355  74.516223  41.442527  35.727341  32.717229  31.736348  23.294740  21.255884  20.156718  18.096378  11.492287
 # [13]   6.946037   5.592728
-# 방한 외국인 고려요인 중 쇼핑이 다른 요소에 가장 많은 영향을 줌
+# 방한 외국인 고려요인 중 휴양휴식이 다른 요소에 가장 많은 영향을 줌
 
 ########################################################################
 
@@ -683,25 +682,18 @@ join_Fo <- 쇼핑 ~ .
 # ctree Model 생성
 main_Model <- ctree(formula = main_Fo, data = tree_Main)
 join_Model <- ctree(formula = join_Fo, data = tree_Join)
+# main_Model <- rpart(formula = main_Fo, data = tree_Main, method = "class")
+# join_Model <- rpart(formula = join_Fo, data = tree_Join, method = "class")
+
+# install.packages(c("rattle", "rpart.plot"))
+# library(rattle)
+# library(rpart.plot)
 
 # ctree Plot
-plot(main_Model)
-plot(join_Model)
-
-# 모델 적합성
-# 방한 외국인 고려요인
-idx_Main <- sample(1:nrow(tree_Main), 0.7 * nrow(tree_Main))
-idx_Main
-
-training_Main <- prd[idx_Main, ]
-testing_Main <- prd[-idx_Main, ]
-
-# 방한 외국인 주요활동 만족요소
-idx_Join <- sample(1:nrow(tree_Join), 0.7 * nrow(tree_Join))
-idx_Join
-
-training_Join <- prd[idx_Join, ]
-testing_Join <- prd[-idx_Join, ]
+plot(main_Model, main = "고려요인")
+plot(join_Model, main = "주요활동 만족요소")
+# fancyRpartPlot(main_Model, caption = NULL, main = "고려요인")
+# fancyRpartPlot(join_Model, caption = NULL, main = "주요활동 만족요소")
 
 ############################################################
 ############################################################
@@ -713,6 +705,7 @@ library(cluster)
 # hclust이용을 위해 데이터 프레임 메트릭스 화
 mat_Main <- t(tree_Main)
 mat_Join <- t(tree_Join)
+mat_Join <- mat_Join[-nrow(mat_Join), ] # 바이너리값 삭제
 
 # 계층적 군집 분석을 위해 클러스트링을 수행 해야 한다.
 # 그에 사전 작업을 위해 유클리디언 거리 생성 함수를 이용한다.
@@ -747,7 +740,7 @@ rect.hclust(main_Clust, k = main_K, border = rainbow(main_K))
 
 ##############################################
 plot(join_Clust, main = "방한 외국인 주요활동 만족요소")
-join_K = 4
+join_K = 3
 rect.hclust(join_Clust, k = join_K, border = rainbow(join_K))
 
 # 군집 plot으로 가시화
@@ -792,6 +785,8 @@ text(mds, rownames(mat_Join), adj = 1.10)
 # 입력 데이터와 유사한 K개의 데이터를 구하고, 그 K개 데이터의 분류 중 가장 빈도가 높은 클래스를 입력 데이터의 분류로  
 # 결정하는 알고리즘이다. 
 
+library(class)
+
 # 정규화 함수
 normalize <- function(x) {
   return ( (x - min(x))/(max(x) - min(x)) )
@@ -829,6 +824,9 @@ summary(knn_JoinAct)
 
 knn_MainAct <- cbind(knn_MainAct, revisitAct_DelCol[1])
 knn_JoinAct <- cbind(knn_JoinAct, revisitAct_DelCol[1])
+
+View(knn_MainAct)
+View(knn_JoinAct)
 ############################################################################### 전처리
 
 knn_Func <- function( val ) {
