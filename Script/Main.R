@@ -545,18 +545,18 @@ revisitAct_DelCol
 
 # 방한 고려요인 상관관계도
 # 뷰티관광 과 휴양휴식 이 가장 관련이 있음.
-corrgram(MainAct, upper.panel = panel.conf)
+corrgram(MainAct[-1], upper.panel = panel.conf)
 # 상관관계 그래프
 par(mfrow=c(1, 1))
-myCorr <- cor(MainAct)
+myCorr <- cor(MainAct[-1])
 corrplot(myCorr, method = "ellipse", addCoef.col = "yellow", type = "upper")
 
 # 주요 참여활동 상관관계도
 # 자연관광 과 역사적 방문 간의 요소가 가장 관련
-corrgram(joinAct, upper.panel = panel.conf)
+corrgram(joinAct[-1], upper.panel = panel.conf)
 # 상관관계 그래프
 par(mfrow=c(1, 1))
-myCorr <- cor(joinAct)
+myCorr <- cor(joinAct[-1])
 corrplot(myCorr, method = "ellipse", addCoef.col = "yellow", type = "upper")
 
 # 방한의사 긍정 표현빈도 상관관계도
@@ -680,18 +680,64 @@ main_Fo <- 휴양휴식 ~ .
 join_Fo <- 쇼핑 ~ .
 
 # ctree Model 생성
-main_Model <- ctree(formula = main_Fo, data = tree_Main)
-join_Model <- ctree(formula = join_Fo, data = tree_Join)
+# main_Model <- ctree(formula = main_Fo, data = tree_Main)
+# join_Model <- ctree(formula = join_Fo, data = tree_Join)
 # main_Model <- rpart(formula = main_Fo, data = tree_Main, method = "class")
 # join_Model <- rpart(formula = join_Fo, data = tree_Join, method = "class")
 
-# install.packages(c("rattle", "rpart.plot"))
-# library(rattle)
-# library(rpart.plot)
+# 데이터 분리 패키지 caret
+# install.packages(c("rattle", "rpart.plot", "caret"))
+library(rattle)
+library(rpart.plot)
+library(caret)
+
+set.seed(1234)
+idx_Number <- createDataPartition(y = tree_Main$bin, p = 0.7, list = FALSE)
+main_tr <- tree_Main[idx_Number, ]
+main_te <- tree_Main[-idx_Number, ]
+
+join_tr <- tree_Join[idx_Number, ]
+join_te <- tree_Join[-idx_Number, ]
 
 # ctree Plot
-plot(main_Model, main = "고려요인")
-plot(join_Model, main = "주요활동 만족요소")
+main <- ctree_control(maxdepth = 20) # 고려요인 의사결정 트리 깊이 20
+join <- ctree_control(maxdepth = 10) # 주요활동 만족요소 트리 깊이 10
+
+tree_Main <- ctree(formula = main_Fo, data = main_tr, controls = main)
+plot(tree_Main, main = "고려요인", compress = TRUE)
+
+tree_Join <- ctree(formula = join_Fo, data = join_tr, controls = join)
+plot(tree_Join, main = "주요활동 만족요소", compress = TRUE)
+
+# 예츨값
+# install.packages("cvTools")
+library(cvTools)
+library(devtools)
+prd_Main <- predict(tree_Main, main_te)
+prd_Join <- predict(tree_Join, join_te)
+
+# 본래/예측 그래프
+cul <- c("원 데이터", "예측 데이터")
+color <- c("red", "blue")
+
+par(mfrow = c(1, 2))
+plot(prd_Main, main = "고려요인 예측", ylim = c(50, 250))
+lines(prd_Main, col="blue", lty="dotted", lwd = 2)
+lines(MainAct$휴양휴식, col="red", lty="dotted", lwd = 2)
+legend(x="top", legend = cul, bty = "l", fill = color, col = color, cex = 0.8, horiz = T)
+
+plot(prd_Join, main = "주요활동 만족요소 예측", ylim = c(550, 1300))
+lines(prd_Join, col="blue", lty="dotted", lwd = 2)
+lines(joinAct$쇼핑, col="red", lty="dotted", lwd = 2)
+legend(x="top", legend = cul, bty = "l", fill = color, col = color, cex = 0.8, horiz = T)
+
+# # 예측값 적중 테이블
+# prd_ta_Main <- table(prd_Main, main_te$휴양휴식)
+# prd_ta_Join <- table(prd_Join, join_te$쇼핑)
+# 
+# prd_ta_Main
+# prd_ta_Join
+
 # fancyRpartPlot(main_Model, caption = NULL, main = "고려요인")
 # fancyRpartPlot(join_Model, caption = NULL, main = "주요활동 만족요소")
 
