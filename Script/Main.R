@@ -734,77 +734,54 @@ plot(tree_Join, main = "주요활동 만족요소", compress = TRUE)
 # 시계열 분석
 par(mfrow = c(1, 2))
 
-fu_Main.ts <- ts(MainAct$휴양휴식) # ts모델 생성
-plot.ts(fu_Main.ts, main = "고려요인 예측(휴양휴식 14 ~ 18)")
-lines(fu_Main.ts, col="blue", lwd = 3)
+fu_Main.ts <- ts(MainAct$휴양휴식, frequency = 12, c(2014, 1)) # ts모델 생성
+de <- decompose(fu_Main.ts) # 계절요인, 순환 요인, 추세 요인, 불규칙 요인 으로 나누기
+plot(de)
 
-# fu_Main.ts 의 그래프가 SMA 함수를 통해 평균이 시간에 따라 일정치 않으므로 1차분 실시
-fu_Main.ff1 <- diff(fu_Main.ts, differences = 1)
-plot.ts(fu_Main.ff1, main = "고려요인 예측(휴양휴식 14 ~ 18) 1차분")
-lines(fu_Main.ff1, col="blue", lwd = 3)
+# 이동평균
+main_sma12 <- SMA(fu_Main.ts, n = 12)
+main_sma24 <- SMA(fu_Main.ts, n = 24)
+main_sma36 <- SMA(fu_Main.ts, n = 36)
 
-## 1차분된 ARIMA 모델을 적합 한 모델인지 확인하는 ACF와 PACF를 통해 확인
+par(mfrow = c(2,2))
 
-# ACF : lag는 0부터 값을 갖는데, 너무 많은 구간을 성정하면 그래프를 보고 판단하기 어렵다.
-# ACF값이 lag 0인 지점 빼고는 모두 점선 구간 안에 있고, 나머지는 구간 안에 존재
-acf(fu_Main.ff1, lag.max = 20) # lag 20
-acf(fu_Main.ff1, lag.max = 20, plot = FALSE) # plot 미 출력
-# Autocorrelations of series ‘fu_Main.ff1’, by lag
-# 
-# 0      1      2      3      4      5      6      7      8      9     10     11     12     13     14     15     16     17     18     19 
-# 1.000 -0.335 -0.022 -0.114  0.170 -0.004 -0.155  0.287 -0.227  0.079 -0.132  0.144 -0.020 -0.120  0.043 -0.138  0.139  0.034  0.097 -0.174 
-# 20 
-# -0.031 
+plot.ts(fu_Main.ts)
+plot.ts(main_sma12)
+plot.ts(main_sma24)
+plot.ts(main_sma36)
 
-# 1차분된 ARIMA 모델 적합 테스트 2번째 PACF 를 실시
-pacf(fu_Main.ff1, lag.max = 20) # lag 20
-pacf(fu_Main.ff1, lag.max = 20, plot = FALSE) # plot 미 출력
-# Partial autocorrelations of series ‘fu_Main.ff1’, by lag
-# 
-# 1      2      3      4      5      6      7      8      9     10     11     12     13     14     15     16     17     18     19     20 
-# -0.335 -0.151 -0.199  0.061  0.068 -0.141  0.265 -0.104 -0.018 -0.064 -0.033  0.039 -0.090 -0.090 -0.139 -0.043  0.168  0.150 -0.042 -0.051 
-# 위 PACF 값이 lag 1번 이 점선 구간을 초과하고 음의 값을 가지며 절단점이 lag 2이다.
-# 절단점 이란 점선 구간 초과한 값에서 최초 점선구간 안으로 들어간 lag위치 + 1
+# 차분을 통해 데이터 정상화
+main_diff1 <- diff(fu_Main.ts, differences = 1)
+main_diff2 <- diff(fu_Main.ts, differences = 2)
+main_diff3 <- diff(fu_Main.ts, differences = 3)
 
-# 위 모델을 종합 해보면
-# ARMA(1, 0) 모델 : PACF값이 lag 2에서 절단점을 가짐, AR(1) 모형
-# ARMA(0, 2) 모델 : ACF값이 lag 3에서 절단점을 가짐, AR(2) 모형
-# ARMA(p, q) 모델 : 그래서 AR모형과 MA모형을 혼합
+plot.ts(fu_Main.ts)
+plot.ts(main_diff1)    # 1차분 정상화화
+plot.ts(main_diff2)    # 2, 3차분 이 2차분에서 정상화를 보이므로 2차분
+plot.ts(main_diff3)
+# ------------------------
 
-# 적절한 ARIMA모형 찾기
-# forecast package에 내장된 auto.arima()함수 이용.
+# 2차분된 데이터의 ARIMA 모형 확인
+# 수동 ARIMA 값 ARIMA(3,1,1) 
+par(mfrow = c(1, 2))
+acf(main_diff2, lag.max = 20) # 절단값(점선밖 세로막대 로부터 최초 점선 안진입 막대) -> MA(0)
+pacf(main_diff2, lag.max = 20) # 절단값(점선밖 세로막대 로부터 최초 점선 안진입 막대) -> AR(0)
+
+# 자동 ARIMA 값 ARIMA(0,1,1)
 auto.arima(MainAct$휴양휴식)
-# Series: MainAct$휴양휴식 
-# ARIMA(0,1,1) 
-# 
-# Coefficients:
-#   ma1
-# -0.3783
-# s.e.   0.1169
-# 
-# sigma^2 estimated as 785:  log likelihood=-279.93
-# AIC=563.86   AICc=564.07   BIC=568.01
-# 고려요인 중에서 ARIMA 적합 모형은 ARIMA(0, 1, 1) 이다.
 
 # ARIMA 모델을 이용한 예측
-# 주어진 시계열 데이터에 적절한 ARIMA 모델을 채택 했다면, ARIMA 모델의 모수들로 미래 값 예측 가능
-# 위에서 언급한 고려요인 중 휴양휴식 자료의 적절한 모델을 ARIMA(0,1,1) 모델에 보정(fitting)
-fu.Main.arima <- arima(fu_Main.ts, order=c(0, 1, 1)) # order 로 보정 하고 forecast()로 예측
-fu.Main.arima
+auto.Main.arima <- arima(fu_Main.ts, order=c(0, 1, 1)) # order 로 보정 자동 값
+Main.arima <- arima(fu_Main.ts, order=c(0, 1, 0)) # 수동 값
 
-# 보정 한후 forecast() 사용 h = 예측 할 범위 5년치 할꺼라서 60개월
-fu.Main.fore <- forecast(fu.Main.arima, h = 60)
+# 보정 한후 forecast() 사용 h = 예측 할 범위(개월)
+auto.main_fcast <- forecast(auto.Main.arima, h = 12)
+main_fcast <- forecast(Main.arima, h = 12)
 
+# 차트 출력
 par(mfrow = c(1, 2))
-plot(MainAct$휴양휴식, type="l")
-lines(MainAct$휴양휴식, col = "blue")
-
-plot(fu.Main.fore)
-
-par(mfrow = c(1, 1))
-plot(fu.Main.fore)
-
-# legend(x="top", legend = cul, bty = "l", fill = color, col = color, cex = 0.8, horiz = T)
+plot(auto.main_fcast)
+plot(main_fcast)
 
 ############################################################
 ############################################################
