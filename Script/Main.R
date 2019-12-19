@@ -714,15 +714,15 @@ insertZero <- function( val ) {
 # main_te <- insertZero(MainAct[-1]) # 시험지 만들기
 # join_te <- insertZero(joinAct[-1]) # 시험지 만들기
 
-# ctree Plot
-main <- ctree_control(maxdepth = 20) # 고려요인 의사결정 트리 깊이 20
-join <- ctree_control(maxdepth = 10) # 주요활동 만족요소 트리 깊이 10
-
-tree_Main <- ctree(formula = main_Fo, data = MainAct[-1], controls = main)
-plot(tree_Main, main = "고려요인", compress = TRUE)
-
-tree_Join <- ctree(formula = join_Fo, data = joinAct[-1], controls = join)
-plot(tree_Join, main = "주요활동 만족요소", compress = TRUE)
+# # ctree Plot
+# main <- ctree_control(maxdepth = 20) # 고려요인 의사결정 트리 깊이 20
+# join <- ctree_control(maxdepth = 10) # 주요활동 만족요소 트리 깊이 10
+# 
+# tree_Main <- ctree(formula = main_Fo, data = MainAct[-1], controls = main)
+# plot(tree_Main, main = "고려요인", compress = TRUE)
+# 
+# tree_Join <- ctree(formula = join_Fo, data = joinAct[-1], controls = join)
+# plot(tree_Join, main = "주요활동 만족요소", compress = TRUE)
 
 # 예측값
 # install.packages("cvTools")
@@ -739,9 +739,9 @@ de <- decompose(fu_Main.ts) # 계절요인, 순환 요인, 추세 요인, 불규
 plot(de)
 
 # 이동평균
-main_sma12 <- SMA(fu_Main.ts, n = 12)
-main_sma24 <- SMA(fu_Main.ts, n = 24)
-main_sma36 <- SMA(fu_Main.ts, n = 36)
+main_sma12 <- SMA(fu_Main.ts, n = 3)
+main_sma24 <- SMA(fu_Main.ts, n = 6)
+main_sma36 <- SMA(fu_Main.ts, n = 9)
 
 par(mfrow = c(2,2))
 
@@ -756,7 +756,7 @@ main_diff2 <- diff(fu_Main.ts, differences = 2)
 main_diff3 <- diff(fu_Main.ts, differences = 3)
 
 plot.ts(fu_Main.ts)
-plot.ts(main_diff1)    # 1차분 정상화화
+plot.ts(main_diff1)    # 1차분 정상화
 plot.ts(main_diff2)    # 2, 3차분 이 2차분에서 정상화를 보이므로 2차분
 plot.ts(main_diff3)
 # ------------------------
