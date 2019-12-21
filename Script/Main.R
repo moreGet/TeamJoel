@@ -349,24 +349,6 @@ chi_df <- chi_df %>%
 row.names(chi_df) <- colnames(MainAct[-1])
 chi_df
 
-# 외국인 재방문 의사를 긍정적으로 검토하게 만든 요인 리스트.
-# P-Value 가 높은 요인순으로 긍정적 검토의 영향을 준다.
-# chiList_revisit
-# 휴양휴식                         0.5688389
-# 유흥_오락                        0.5333151
-# 뷰티관광                         0.5004407
-# 쇼핑.1                           0.4718427
-# 음식_미식탐방                    0.4698975
-# 자연풍경감상                     0.4392475
-# 역사_문화유적                    0.4362065
-# 패션_유행_.등_.세련된_문화       0.4062221
-# K.POP_한류스타_팬미팅            0.3555232
-# 경제적인_여행비용                0.3301845
-# 유흥_놀이시설                    0.3273608
-# 숙박시설_편리한.교통             0.3080835
-# 이미용_서비스                    0.2777497
-# 기후_뚜렷한_사계절               0.2756363
-
 # 단일집단 평균 t.test() 검증 이유 : 4년간 년도별 재방문 의사 긍정적표현의 변화
 # install.packages(c("Hmisc", "prettyR"))
 library(Hmisc)
@@ -395,27 +377,11 @@ for (idx in 1:length(revisit_bin_df)) {
   print(describe(vec))
 }
 
-# 14 ~ 18 년도 전부 정규분포가 아님
-# [1] FALSE
-# [1] FALSE
-# [1] FALSE
-# [1] FALSE
-# [1] FALSE
-
 # 정규 분포가 아니기 때문에 wilcox 검정 실시.
 for (idx in 1:length(revisit_bin_df)) {
   w <- wilcox.test(x = unlist(revisit_bin_df[idx]), mu = 0.52, alternative = "two.sided")
   print(w$p.value > 0.05)
 }
-
-# 연구가설 : 알려져 있는 우리나라 재방문 의사표현은 매년 바뀐다.
-# 귀무가설 : 알려져 있는 우리나라 재방문 의사표현은 매년 바뀌지 않는다.
-# 비모수 검정(wilcox) 검정 결과 채택
-# [1] TRUE 2014
-# [1] TRUE 2015
-# [1] TRUE 2016
-# [1] TRUE 2017
-# [1] TRUE 2018
 
 # 귀무가설 채택 : 외국인 방한 의사가 매년 바뀌지 않고 52% 이상이 긍정적 이다.
 
@@ -775,8 +741,8 @@ auto.Main.arima <- arima(fu_Main.ts, order=c(0, 1, 1)) # order 로 보정 자동
 Main.arima <- arima(fu_Main.ts, order=c(0, 1, 0)) # 수동 값
 
 # 보정 한후 forecast() 사용 h = 예측 할 범위(개월)
-auto.main_fcast <- forecast(auto.Main.arima, h = 12)
-main_fcast <- forecast(Main.arima, h = 12)
+auto.main_fcast <- forecast(auto.Main.arima, h = 1)
+main_fcast <- forecast(Main.arima, h = 1)
 
 # 차트 출력
 par(mfrow = c(1, 2))
